@@ -1,0 +1,110 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // Or "mysql", "sqlite", etc.
+  url      = env("DATABASE_URL")
+}
+
+// Define an Enum for roles for strong typing
+enum UserRole {
+  hr
+  user
+}
+
+model User {
+  id            String    @id @default(cuid()) // or uuid()
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  phone         String? // Optional, can be used for HR users or social logins
+  password      String? // Make password optional as social logins don't have it
+  role          UserRole  @default(user) // Use the enum here, default to 'user'
+  company       String? // Optional, for HR users
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  accounts Account[]
+  sessions Session[]
+
+  jobPosted Job[]
+  applications Applicant[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Job {
+  id             String   @id @default(cuid())
+  jobTitle       String
+  numOpenings    Int
+  minSalary      Int
+  maxSalary      Int
+  jobMode        String // e.g., "Full-time(Remote)", "Internship(On-site)"
+  jobDescription String
+  deadline       DateTime // Optional, can be null if no deadline
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  postedById String
+  postedBy   User   @relation(fields: [postedById], references: [id], onDelete: Cascade)
+  applications Applicant[]
+
+  status String @default("active") // e.g., "active", "closed", "draft"
+
+  @@map("jobs")
+}
+
+model Applicant {
+  id        String   @id @default(cuid())
+  status  String @default("applied")
+  appliedAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relation to User (the applicant)
+  userId String
+  user User @relation(fields: [userId], references: [id])
+
+  // Relation to Job (the job they applied for)
+  jobId String
+  job Job @relation(fields: [jobId] , references: [id])
+
+  fullName String @default("")
+  contactEmail String @default("")
+  phoneNumber String?
+  resumeUrl String?
+
+ @@unique([userId , jobId]) 
+}
