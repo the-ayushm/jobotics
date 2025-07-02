@@ -3,12 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { client } from '@/lib/prisma';
 
-interface Params {
-  jobId: string;
-}
-
 // ✅ GET job details by ID
-export async function GET(req: NextRequest, context: { params: Params }) {
+export async function GET(req: NextRequest, context: { params: Record<string, string> }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session || !session.user || !session.user.id || session.user.role !== "hr") {
@@ -59,7 +55,7 @@ export async function GET(req: NextRequest, context: { params: Params }) {
 }
 
 // ✅ PATCH (update) job details
-export async function PATCH(req: NextRequest, context: { params: Params }) {
+export async function PATCH(req: NextRequest, context: { params: Record<string, string> }) {
   try {
     const { jobId } = context.params;
     const session = await getServerSession(authOptions);
@@ -132,7 +128,7 @@ export async function PATCH(req: NextRequest, context: { params: Params }) {
 }
 
 // ✅ DELETE job by ID
-export async function DELETE(req: NextRequest, context: { params: Params }) {
+export async function DELETE(req: NextRequest, context: { params: Record<string, string> }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session || !session.user || session.user.role !== 'hr') {
