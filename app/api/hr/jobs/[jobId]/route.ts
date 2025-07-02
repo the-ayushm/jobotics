@@ -7,72 +7,46 @@ interface Params {
     jobId: string;
 }
 
-export async function GET(req: NextRequest , {params} : {params: Params}) {
-    try {
-        const session = await getServerSession(authOptions)
-        if (!session || !session.user || !session.user.id || session.user.role !== "hr") {
-            console.warn("Unauthorized access attempt to view job openings")
-            return NextResponse.json({
-                message: "Unauthorized access",
-            }, { status: 401 });
-        }
-        const {jobId} = await params
-        if (!jobId) {
-            return NextResponse.json({ message: 'Job ID is required' }, { status: 400 });
-        }
-
-        const job = await client.job.findUnique({
-            where: {
-                id: jobId,
-            }, 
-            select: {
-                id: true,
-                jobTitle: true,
-                numOpenings: true,
-                minSalary: true,
-                maxSalary: true,
-                jobMode: true,
-                jobDescription: true,
-                deadline: true,
-                status: true,
-                createdAt: true,
-                postedBy: { // Include information about the HR user who posted it
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        company: true,
-                    },
-                },
-            },
-        })
-        if(!job){
-            console.warn(`Job with ID ${jobId} not found.`)
-            return NextResponse.json({message:'Job not found'} , {status: 404});
-        }
-
-        console.log(`Fetched job details for ID: ${jobId}`)
-        return NextResponse.json(job, { status: 200 });
-
-
-    }catch (error: any) {
-        console.error(`Error fetching job details for ID ${params.jobId}:`, error);
-        return NextResponse.json(
-            { message: 'Failed to fetch job details.', error: error.message || 'Unknown error' },
-            { status: 500 }
-        );
+export async function GET(req: NextRequest, {params}: { params: Params }) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session || !session.user || !session.user.id || session.user.role !== "hr") {
+      return NextResponse.json({ message: "Unauthorized access" }, { status: 401 });
     }
+
+    const { jobId } = params;
+    if (!jobId) {
+      return NextResponse.json({ message: 'Job ID is required' }, { status: 400 });
+    }
+
+    const job = await client.job.findUnique({
+      where: { id: jobId },
+      select: { /* ... */ },
+    });
+
+    if (!job) {
+      return NextResponse.json({ message: 'Job not found' }, { status: 404 });
+    }
+
+    return NextResponse.json(job, { status: 200 });
+  } catch (error: any) {
+    return NextResponse.json(
+      { message: 'Failed to fetch job details.', error: error.message || 'Unknown error' },
+      { status: 500 }
+    );
+  }
 }
+
 
 export async function PATCH(req: NextRequest, {params} : {params: Params}){
     try{
+        const {jobId} = params
         const session = await getServerSession(authOptions)
         if (!session || !session.user || session.user.role !== 'hr') {
-            console.warn(`Unauthorized attempt to update job details for ID: ${params.jobId}`);
+            console.warn(`Unauthorized attempt to update job details for ID: ${jobId}`);
             return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
         }
 
-        const {jobId} = await params
         if(!jobId){
             return NextResponse.json({
                 message: 'job ID is required.'
@@ -156,7 +130,7 @@ export async function DELETE(req: NextRequest , {params} : {params : Params}){
             return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
         }
 
-        const {jobId} = await params
+        const {jobId} = params
         if(!jobId){
             return NextResponse.json({
                 message: 'job ID is required.'
