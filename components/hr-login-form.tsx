@@ -35,6 +35,7 @@ export function LoginForm({
       redirect: true, // Let NextAuth handle the redirect
       email,
       password,
+      role: "hr",
       callbackUrl: "/dashboard/hr", // Corrected path for HR dashboard
     });
 

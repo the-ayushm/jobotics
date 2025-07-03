@@ -1,7 +1,7 @@
 // components/dashboard/hr/CreateJobForm.tsx
 "use client";
 
-import React, { useState } from 'react'; // Removed incorrect 'format' import
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,18 +12,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-// Removed unused Textarea import, using TextareaAutosize
 import TextareaAutosize from 'react-textarea-autosize';
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 // Date picker specific imports
-import { Calendar } from '@/components/ui/calendar'; // Shadcn Calendar component
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'; // Shadcn Popover component
-import { CalendarIcon } from 'lucide-react'; // Icon for the date picker trigger
-import { format as formatDate } from 'date-fns'; // Import format from date-fns
-import { FormEvent } from 'react'; // Import FormEvent for form handling
-import { HrNavbar } from './hr-navbar';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CalendarIcon } from 'lucide-react';
+import { format as formatDate, isBefore, startOfDay } from 'date-fns';
+
+// For toast notifications - NOW USING SONNER
+import { toast } from "sonner"; // Import toast directly from sonner
 
 export function CreateJobForm() {
   const [jobTitle, setJobTitle] = useState("");
@@ -32,8 +32,10 @@ export function CreateJobForm() {
   const [maxSalary, setMaxSalary] = useState<number | ''>("");
   const [jobMode, setJobMode] = useState("");
   const [jobDescription, setJobDescription] = useState("");
-  const [deadline, setDeadline] = useState<Date | undefined>(undefined); // New state for deadline date
-  const [isLoading, setIsLoading] = useState(false); // Optional: Loading state for form submission
+  const [deadline, setDeadline] = useState<Date | undefined>(undefined);
+  const [isLoading, setIsLoading] = useState(false);
+  // const { toast } = useToast(); // REMOVE useToast hook
+
   const jobs = [
     "Software Engineer", "Data Scientist", "Product Manager", "Web Developer",
     "Mobile Developer", "UX Designer", "DevOps Engineer", "System Administrator",
@@ -46,38 +48,47 @@ export function CreateJobForm() {
     "Full-time(Remote)", "Full-time(On-site)", "Internship(Remote)", "Internship(On-site)",
   ];
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    if (!jobTitle || !numOpenings || !minSalary || !maxSalary || !jobMode || !jobDescription) {
-      alert("Please fill in all fields.");
+
+    if (!jobTitle || numOpenings === '' || minSalary === '' || maxSalary === '' || !jobMode || !jobDescription || !deadline) {
+      toast.error("Missing Information", { // Use toast.error for destructive variant
+        description: "Please fill in all required fields.",
+      });
       setIsLoading(false);
       return;
     }
+
     try {
-      const res = await fetch('/api/hr/jobs', {
+      const response = await fetch('/api/hr/jobs', {
         method: 'POST',
         headers: {
-          'content-type': 'application/json',
+          'Content-Type': 'application/json',
         },
-         body: JSON.stringify({
-    jobTitle,
-    numOpenings,
-    minSalary,
-    maxSalary,
-    jobMode,
-    jobDescription,
-    deadline, // you might want to format this to a string if your backend expects one
-  }),
-      })
+        body: JSON.stringify({
+          jobTitle,
+          numOpenings: Number(numOpenings),
+          minSalary: Number(minSalary),
+          maxSalary: Number(maxSalary),
+          jobMode,
+          jobDescription,
+          deadline: deadline.toISOString(),
+        }),
+      });
 
-      if (!res.ok) {
-        console.error("Failed to create job opening");
-        return;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to post job');
       }
-      const data = await res.json();
-      console.log("Job opening created successfully:", data);
-      alert("Job opening created successfully!");
+
+      const result = await response.json();
+      console.log('Job posted successfully:', result);
+
+      toast.success("Job Posted!", { // Use toast.success for success variant
+        description: `"${jobTitle}" has been successfully added.`,
+      });
+
       setJobTitle("");
       setNumOpenings("");
       setMinSalary("");
@@ -85,17 +96,18 @@ export function CreateJobForm() {
       setJobMode("");
       setJobDescription("");
       setDeadline(undefined);
-      
-    } catch (err) {
-      console.error("Error creating job opening:", err);
-      alert("Failed to create job opening. Please try again.");
+
+    } catch (error: any) {
+      console.error("Error submitting job:", error);
+      toast.error("Submission Failed", { // Use toast.error for destructive variant
+        description: error.message || "An unexpected error occurred.",
+      });
     } finally {
-      setIsLoading(false); // Reset loading state after submission
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
-    <>
     <section className="max-w-xl mx-auto w-full mb-12">
       <Card className="w-full p-8 space-y-6 bg-card text-card-foreground shadow-md rounded-lg border border-border">
         <CardHeader className="text-center">
@@ -167,7 +179,6 @@ export function CreateJobForm() {
                 </SelectContent>
               </Select>
 
-              {/* NEW: Job Deadline Date Picker */}
               <Label htmlFor="jobDeadline" className="mt-4 block">Application Deadline</Label>
               <Popover>
                 <PopoverTrigger asChild>
@@ -188,8 +199,8 @@ export function CreateJobForm() {
                     selected={deadline}
                     onSelect={setDeadline}
                     autoFocus
-                    // Optional: Disable past dates
-                    disabled={(date) => date < new Date()}
+                    disabled = {(date) => isBefore(startOfDay(date), startOfDay(new Date()))}
+                    
                   />
                 </PopoverContent>
               </Popover>
@@ -210,8 +221,8 @@ export function CreateJobForm() {
               />
 
               <div className="mt-6 flex">
-                <Button type="submit" className="mx-auto w-full bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer">
-                  Submit
+                <Button type="submit" className="mx-auto w-full bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer" disabled={isLoading}>
+                  {isLoading ? "Submitting..." : "Submit"}
                 </Button>
               </div>
             </div>
@@ -219,6 +230,5 @@ export function CreateJobForm() {
         </CardContent>
       </Card>
     </section>
-    </>
   );
 }
