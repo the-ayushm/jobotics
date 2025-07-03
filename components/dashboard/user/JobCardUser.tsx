@@ -43,7 +43,7 @@ export function JobCardUser({ job, onApplySuccess }: JobCardUserProps) {
             {job.numOpenings} Openings
           </Badge>
           <Badge variant="outline" className="px-3 py-1 text-sm font-medium border-purple-500 text-purple-700 dark:border-purple-400 dark:text-purple-300 rounded-full">
-            ${job.minSalary.toLocaleString()} - ${job.maxSalary.toLocaleString()}
+            ₹{job.minSalary.toLocaleString()} - ₹{job.maxSalary.toLocaleString()}
           </Badge>
         </div>
       </CardHeader>
