@@ -5,8 +5,8 @@ import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import React, { useEffect } from "react";
 
-import { HrNavbar } from "@/components/dashboard/hr/hr-navbar"; // Your Navbar
-import { EditJobForm } from "@/components/dashboard/hr/EditJobForm"; // Import the new EditJobForm
+import { HrNavbar } from "@/components/hr/hr-navbar"; // Your Navbar
+import { EditJobForm } from "@/components/hr/EditJobForm"; // Import the new EditJobForm
 
 export default function EditJobPage() {
   const { data: session, status: sessionStatus } = useSession();

@@ -230,7 +230,7 @@ export default function JobDetailsPage() {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Salary Range</p>
-                    <p className="text-lg">${job.minSalary.toLocaleString()} - ${job.maxSalary.toLocaleString()}</p>
+                    <p className="text-lg">₹{job.minSalary.toLocaleString()} - ₹{job.maxSalary.toLocaleString()}</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Application Deadline</p>
@@ -253,9 +253,7 @@ export default function JobDetailsPage() {
           )}
         </main>
 
-        <footer className="p-4 text-center text-sm bg-card border-t border-border text-muted-foreground">
-          &copy; {new Date().getFullYear()} Jobotics. All rights reserved.
-        </footer>
+        
       </div>
     );
   }

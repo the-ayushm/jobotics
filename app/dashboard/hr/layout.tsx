@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { HrNavbar } from "@/components/dashboard/hr/hr-navbar"; // Correct path
+import { HrNavbar } from "@/components/hr/hr-navbar"; // Correct path
 
 export default function HrDashboardLayout({ children }: { children: React.ReactNode; }) {
   const { data: session, status } = useSession();

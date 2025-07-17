@@ -2,11 +2,11 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { JobCardUser } from './JobCardUser'; // Import the new job card
-import { Skeleton } from "@/components/ui/skeleton"; // For loading state
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // For error/empty state
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"; // Ensure Card is imported
-import { Terminal } from 'lucide-react'; // Icon for Alert
+import { JobCardUser } from './JobCardUser';
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Terminal } from 'lucide-react';
 
 interface Job {
   id: string;
@@ -16,8 +16,10 @@ interface Job {
   minSalary: number;
   maxSalary: number;
   jobMode: string;
-  deadline: string | null; // Allow null
-  createdAt: string | null; // Allow null
+  deadline: string | null;
+  createdAt: string | null;
+  hasApplied?: boolean; // NEW: Add hasApplied flag
+  userApplicationStatus?: string | null; // NEW: Add userApplicationStatus
 }
 
 export function UserJobFeed() {
@@ -51,7 +53,7 @@ export function UserJobFeed() {
   if (loading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {[...Array(3)].map((_, i) => ( // Render 3 skeleton cards
+        {[...Array(3)].map((_, i) => (
           <Card key={i} className="flex flex-col h-full bg-card text-card-foreground shadow-sm">
             <CardHeader>
               <Skeleton className="h-6 w-3/4 mb-2" />
@@ -96,7 +98,11 @@ export function UserJobFeed() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {jobs.map((job) => (
-        <JobCardUser key={job.id} job={job} onApplySuccess={fetchJobs} />
+        <JobCardUser
+          key={job.id}
+          job={job}
+          onApplySuccess={fetchJobs}
+        />
       ))}
     </div>
   );

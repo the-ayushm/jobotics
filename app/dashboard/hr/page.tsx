@@ -6,12 +6,12 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 // Import your custom dashboard components
-import { HrNavbar } from "@/components/dashboard/hr/hr-navbar"; // Ensure this path is correct
-import { MetricCards } from "@/components/dashboard/hr/MetricCards";
-import { JobListingsTable } from "@/components/dashboard/hr/JobListingsTable";
-import { ApplicantFunnel } from "@/components/dashboard/hr/ApplicantFunnel";
-import { UpcomingInterviews } from "@/components/dashboard/hr/UpcomingInterviews";
-import { RecentActivity } from "@/components/dashboard/hr/RecentActivity";
+import { HrNavbar } from "@/components/hr/hr-navbar"; // Ensure this path is correct
+import { MetricCards } from "@/components/hr/MetricCards";
+import { JobListingsTable } from "@/components/hr/JobListingsTable";
+import { ApplicantFunnel } from "@/components/hr/ApplicantFunnel";
+import { UpcomingInterviews } from "@/components/hr/UpcomingInterviews";
+import { RecentActivity } from "@/components/hr/RecentActivity";
 // import { CreateJobForm } from "@/components/dashboard/hr/CreateJobForm"; // The job creation form
 
 export default function HrDashboardPage() {

@@ -22,6 +22,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "tailwind.config.js", "next.config.js", "components/dashboard/hr/HrInterviews.tsz"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "tailwind.config.js", "next.config.js", "components/hr/HrInterviews.tsz"],
   "exclude": ["node_modules"]
 }

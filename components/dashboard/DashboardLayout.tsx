@@ -5,8 +5,7 @@ import React, { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-// Import SheetTitle and SheetDescription
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"; 
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import { Toaster } from "sonner";
 
@@ -25,6 +24,7 @@ export function DashboardLayout({ children, activeSection, onSectionChange }: Da
   };
 
   const navItems = [
+    { name: "Dashboard", id: "dashboard" }, // <--- ADDED THIS LINE
     { name: "Available Jobs", id: "available-jobs" },
     { name: "My Applications", id: "my-applications" },
     { name: "Profile", id: "profile" },
@@ -44,11 +44,9 @@ export function DashboardLayout({ children, activeSection, onSectionChange }: Da
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-64 p-0 bg-white dark:bg-gray-800">
-              {/* ADDED SheetHeader, SheetTitle, SheetDescription for accessibility */}
-              <SheetHeader className="p-4 border-b dark:border-gray-700">
-                <SheetTitle className="text-xl font-semibold">Dashboard Menu</SheetTitle>
-                <SheetDescription className="sr-only">Navigation for the user dashboard.</SheetDescription> {/* sr-only hides visually but available to screen readers */}
-              </SheetHeader>
+              <div className="p-4 border-b dark:border-gray-700">
+                <h2 className="text-xl font-semibold">Dashboard</h2>
+              </div>
               <nav className="flex flex-col p-4 space-y-2">
                 {navItems.map((item) => (
                   <Button

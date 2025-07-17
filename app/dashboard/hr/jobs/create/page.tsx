@@ -1,4 +1,4 @@
-import { CreateJobForm } from "@/components/dashboard/hr/CreateJobForm"; // The job creation form
+import { CreateJobForm } from "@/components/hr/CreateJobForm"; // The job creation form
 
 export default function CreateJobPage() {
   return (

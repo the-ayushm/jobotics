@@ -33,7 +33,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton"; // For loading states
 import { Eye, Download, Search, Filter } from "lucide-react"; // Icons
 
-import { HrNavbar } from "@/components/dashboard/hr/hr-navbar";
+import { HrNavbar } from "@/components/hr/hr-navbar";
 import { cn } from "@/lib/utils";
 
 // Define the Applicant type for better type safety
@@ -122,8 +122,6 @@ export default function HrApplicantsPage() {
   if (sessionStatus === "authenticated" && session.user?.role === "hr") {
     return (
       <div className="min-h-screen flex flex-col bg-background text-foreground">
-        <HrNavbar />
-
         <main className="flex-grow p-4 md:p-8 container mx-auto">
           {/* Page Header */}
           <div className="mb-8">
@@ -251,9 +249,7 @@ export default function HrApplicantsPage() {
           </Card>
         </main>
 
-        <footer className="p-4 text-center text-sm bg-card border-t border-border text-muted-foreground">
-          &copy; {new Date().getFullYear()} Jobotics. All rights reserved.
-        </footer>
+        
       </div>
     );
   }

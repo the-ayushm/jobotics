@@ -6,9 +6,10 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format as formatDate } from 'date-fns';
-// import { toast } from 'sonner'; // No direct toast here anymore, handled by dialog
+import { toast } from 'sonner';
 
-import { ApplyJobDialog } from '@/components/dashboard/user/ApplyJobDialog'; // Import the new dialog component
+import { ApplyJobDialog } from './ApplyJobDialog'; // Ensure this is correctly imported
+import { Loader2 } from 'lucide-react'; // For loading spinner
 
 interface JobCardUserProps {
   job: {
@@ -22,11 +23,38 @@ interface JobCardUserProps {
     deadline: string | Date | null;
     createdAt: string | Date | null;
   };
-  onApplySuccess: () => void; // Callback to refresh job list/applications after successful apply
+  onApplySuccess: () => void;
+  hasApplied?: boolean; // NEW: Prop to indicate if user has applied
+  userApplicationStatus?: string | null; // NEW: Prop for current application status
 }
 
-export function JobCardUser({ job, onApplySuccess }: JobCardUserProps) {
-  // handleApply logic is now moved into ApplyJobDialog
+export function JobCardUser({ job, onApplySuccess, hasApplied, userApplicationStatus }: JobCardUserProps) {
+  // If the job is already applied for, the dialog won't be triggered.
+  // Instead, the button will just say "Applied".
+  const isApplied = hasApplied; // Use the prop directly
+
+  // Determine button text and disabled state
+  let buttonText = "Apply Now";
+  let buttonVariant: "default" | "secondary" | "destructive" | "outline" | "ghost" | "link" = "default";
+  let buttonDisabled = false;
+
+  if (isApplied) {
+    buttonText = userApplicationStatus ? `Applied (${userApplicationStatus})` : "Applied";
+    buttonVariant = "secondary"; // A different variant to show it's already done
+    buttonDisabled = true; // Disable the button if already applied
+  }
+
+  // Check if deadline has passed
+  const deadlinePassed = job.deadline ? new Date() > new Date(job.deadline) : false;
+  if (deadlinePassed && !isApplied) { // If deadline passed and not already applied
+    buttonText = "Deadline Passed";
+    buttonVariant = "outline";
+    buttonDisabled = true;
+  } else if (deadlinePassed && isApplied) { // If deadline passed and already applied
+    buttonText = `Applied (Deadline Passed)`;
+    buttonVariant = "secondary";
+    buttonDisabled = true;
+  }
 
   return (
     <Card className="flex flex-col h-full bg-card text-card-foreground shadow-lg hover:shadow-xl transition-all duration-300 rounded-lg overflow-hidden">
@@ -43,7 +71,7 @@ export function JobCardUser({ job, onApplySuccess }: JobCardUserProps) {
             {job.numOpenings} Openings
           </Badge>
           <Badge variant="outline" className="px-3 py-1 text-sm font-medium border-purple-500 text-purple-700 dark:border-purple-400 dark:text-purple-300 rounded-full">
-            ₹{job.minSalary.toLocaleString()} - ₹{job.maxSalary.toLocaleString()}
+            ${job.minSalary.toLocaleString()} - ${job.maxSalary.toLocaleString()}
           </Badge>
         </div>
       </CardHeader>
@@ -53,12 +81,17 @@ export function JobCardUser({ job, onApplySuccess }: JobCardUserProps) {
         </p>
       </CardContent>
       <CardFooter className="flex justify-end p-6 pt-0">
-        {/* Use the ApplyJobDialog component */}
-        <ApplyJobDialog
-          jobId={job.id}
-          jobTitle={job.jobTitle}
-          onApplySuccess={onApplySuccess}
-        />
+        {isApplied ? (
+          <Button variant={buttonVariant} disabled={buttonDisabled} className="w-full">
+            {buttonText}
+          </Button>
+        ) : (
+          <ApplyJobDialog
+            jobId={job.id}
+            jobTitle={job.jobTitle}
+            onApplySuccess={onApplySuccess}
+          />
+        )}
       </CardFooter>
     </Card>
   );
