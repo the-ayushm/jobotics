@@ -1,4 +1,6 @@
 // app/api/user/jobs/route.ts
+
+export const dynamic = "force-dynamic";
 import { NextResponse } from 'next/server';
 import { client } from "@/lib/prisma"; // Your Prisma client instance
 import { getServerSession } from "next-auth";
