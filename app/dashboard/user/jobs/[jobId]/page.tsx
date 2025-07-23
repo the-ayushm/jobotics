@@ -1,6 +1,5 @@
 // app/dashboard/user/jobs/[jobId]/page.tsx
 "use client";
-
 import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
