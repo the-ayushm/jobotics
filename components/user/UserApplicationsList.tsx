@@ -4,7 +4,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal } from 'lucide-react';
+import { Terminal, Eye, Download } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -12,18 +12,17 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"; // Import Table components
-import { Badge } from "@/components/ui/badge"; // Import Badge
-import { Skeleton } from "@/components/ui/skeleton"; // Import Skeleton for loading
-import { Button } from "@/components/ui/button"; // Import Button
-import { Eye, Download } from "lucide-react"; // Icons for actions
-import { format as formatDate } from 'date-fns'; // For date formatting
-import { useRouter } from 'next/navigation'; // For navigation
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { format as formatDate } from 'date-fns';
+import { useRouter } from 'next/navigation';
+import { cn } from "@/lib/utils";
 
-// Define the Application type (should match API response)
 interface Application {
   id: string;
-  status: string;
+  status: "applied" | "reviewed" | "interviewed" | "offer" | "hired" | "rejected";
   appliedAt: string;
   job: {
     id: string;
@@ -33,20 +32,20 @@ interface Application {
     maxSalary: number;
     deadline: string;
   };
-  resumeUrl: string | null; // Assuming resumeUrl is stored in Applicant model
+  resumeUrl: string | null;
 }
 
 export function UserApplicationsList() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter(); // Initialize router
+  const router = useRouter();
 
   const fetchApplications = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch('/api/user/applications'); // Call the new API endpoint
+      const response = await fetch('/api/user/applications');
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to fetch applications.');
@@ -54,7 +53,7 @@ export function UserApplicationsList() {
       const data: Application[] = await response.json();
       setApplications(data);
     } catch (err: any) {
-      setError(err.message || 'An unknown error occurred.');
+      setError(err.message || 'An unknown error occurred while fetching applications.');
       console.error("Error fetching applications:", err);
     } finally {
       setLoading(false);
@@ -112,24 +111,26 @@ export function UserApplicationsList() {
                   <TableRow key={app.id}>
                     <TableCell className="font-medium">{app.job.jobTitle}</TableCell>
                     <TableCell>{app.job.jobMode}</TableCell>
-                    <TableCell>₹{app.job.minSalary.toLocaleString()} - ₹{app.job.maxSalary.toLocaleString()}</TableCell>
+                    <TableCell>${app.job.minSalary.toLocaleString()} - ${app.job.maxSalary.toLocaleString()}</TableCell>
                     <TableCell>{formatDate(new Date(app.job.deadline), 'PPP')}</TableCell>
                     <TableCell>
                       <Badge
-                        className={
-                          app.status === "applied" ? "bg-blue-100 text-blue-700" :
-                          app.status === "reviewed" ? "bg-purple-100 text-purple-700" :
-                          app.status === "interviewed" ? "bg-indigo-100 text-indigo-700" :
-                          app.status === "offer" ? "bg-green-100 text-green-700" :
-                          app.status === "hired" ? "bg-green-500 text-white" :
-                          "bg-red-100 text-red-700" // For "rejected" or other
-                        }
+                        className={cn(
+                          "text-xs font-semibold",
+                          app.status === "applied" && "bg-blue-100 text-blue-700 hover:bg-blue-200",
+                          app.status === "reviewed" && "bg-purple-100 text-purple-700 hover:bg-purple-200",
+                          app.status === "interviewed" && "bg-indigo-100 text-indigo-700 hover:bg-indigo-200",
+                          app.status === "offer" && "bg-green-100 text-green-700 hover:bg-green-700",
+                          app.status === "hired" && "bg-green-500 text-white hover:bg-green-600",
+                          app.status === "rejected" && "bg-red-100 text-red-700 hover:bg-red-200"
+                        )}
                       >
                         {app.status.charAt(0).toUpperCase() + app.status.slice(1)}
                       </Badge>
                     </TableCell>
                     <TableCell>{formatDate(new Date(app.appliedAt), 'PPP')}</TableCell>
                     <TableCell className="text-right whitespace-nowrap">
+                      {/* UPDATED: Link to the new dynamic user job details page */}
                       <Button variant="ghost" size="sm" onClick={() => router.push(`/dashboard/user/jobs/${app.job.id}`)}>
                         <Eye className="h-4 w-4 mr-1" /> View Job
                       </Button>

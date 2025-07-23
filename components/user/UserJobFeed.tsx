@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { JobCardUser } from './JobCardUser';
+import { JobCardUser } from '@/components/user/JobCardUser'; // Ensure JobCardUser is correctly imported
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,11 +18,11 @@ interface Job {
   jobMode: string;
   deadline: string | null;
   createdAt: string | null;
-  hasApplied?: boolean; // NEW: Add hasApplied flag
-  userApplicationStatus?: string | null; // NEW: Add userApplicationStatus
+  hasApplied?: boolean;
+  userApplicationStatus?: string | null;
 }
 
-export function UserJobFeed() {
+export function UserJobFeed() { // <--- ENSURE IT'S EXPORTED AS A NAMED EXPORT
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -100,8 +100,10 @@ export function UserJobFeed() {
       {jobs.map((job) => (
         <JobCardUser
           key={job.id}
-          job={job}
+          job={job} 
           onApplySuccess={fetchJobs}
+          hasApplied={job.hasApplied}
+          userApplicationStatus={job.userApplicationStatus}
         />
       ))}
     </div>

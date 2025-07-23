@@ -30,22 +30,35 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Skeleton } from "@/components/ui/skeleton"; // For loading states
-import { Eye, Download, Search, Filter } from "lucide-react"; // Icons
+import { Skeleton } from "@/components/ui/skeleton";
+import { Eye, Download, Search, Filter } from "lucide-react";
 
-import { HrNavbar } from "@/components/hr/hr-navbar";
+import { HrNavbar } from "@/components/hr/hr-navbar"; // Correct path
 import { cn } from "@/lib/utils";
+import { format as formatDate } from 'date-fns'; // For date formatting
 
 // Define the Applicant type for better type safety
 interface Applicant {
   id: string;
-  name: string;
-  email: string;
-  jobApplied: string;
-  status: "New Application" | "Screened" | "Interview Scheduled" | "Offer Extended" | "Rejected";
-  lastActivity: string; // Date string
-  resumeLink: string;
-  profileLink: string;
+  // These fields are now nested under 'user' and 'job' objects
+  user: {
+    id: string;
+    name: string | null; // Applicant's name
+    email: string;       // Applicant's email
+    phone: string | null;
+  };
+  job: {
+    id: string;
+    jobTitle: string; // Job title
+    jobMode: string;
+    minSalary: number;
+    maxSalary: number;
+    deadline: string;
+  };
+  status: "applied" | "reviewed" | "interviewed" | "offer" | "hired" | "rejected";
+  appliedAt: string; // This is the 'Last Activity'
+  resumeUrl: string | null; // Assuming resumeUrl is stored in Applicant model
+  profileLink: string; // This will need to be constructed on the frontend
 }
 
 export default function HrApplicantsPage() {
@@ -56,19 +69,17 @@ export default function HrApplicantsPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [statusFilter, setStatusFilter] = useState<string>("All"); // Default filter
+  const [statusFilter, setStatusFilter] = useState<string>("All");
 
-  // All possible statuses for the filter dropdown
   const allApplicantStatuses = [
     "All",
-    "New Application",
+    "New Application", // Corresponds to 'applied' status from DB
     "Screened",
     "Interview Scheduled",
     "Offer Extended",
     "Rejected",
   ];
 
-  // Authentication check
   useEffect(() => {
     if (sessionStatus === "loading") return;
     if (sessionStatus === "unauthenticated" || session?.user?.role !== "hr") {
@@ -76,7 +87,6 @@ export default function HrApplicantsPage() {
     }
   }, [session, sessionStatus, router]);
 
-  // Fetch applicants data
   useEffect(() => {
     const fetchApplicants = async () => {
       setLoading(true);
@@ -87,7 +97,9 @@ export default function HrApplicantsPage() {
           queryParams.append('search', searchTerm);
         }
         if (statusFilter !== 'All') {
-          queryParams.append('status', statusFilter);
+          // Map frontend filter name to backend status name if different
+          const backendStatus = statusFilter === "New Application" ? "applied" : statusFilter.toLowerCase();
+          queryParams.append('status', backendStatus);
         }
 
         const response = await fetch(`/api/hr/applicants?${queryParams.toString()}`);
@@ -96,9 +108,9 @@ export default function HrApplicantsPage() {
         }
         const data: Applicant[] = await response.json();
         setApplicants(data);
-      } catch (err) {
+      } catch (err: any) {
         console.error("Error fetching applicants:", err);
-        setError("Failed to load applicants. Please try again.");
+        setError(err.message || "Failed to load applicants. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -107,9 +119,8 @@ export default function HrApplicantsPage() {
     if (sessionStatus === "authenticated" && session?.user?.role === "hr") {
       fetchApplicants();
     }
-  }, [searchTerm, statusFilter, sessionStatus, session]); // Re-fetch when search/filter/auth changes
+  }, [searchTerm, statusFilter, sessionStatus, session]);
 
-  // Loading state for initial session check
   if (sessionStatus === "loading") {
     return (
       <div className="flex items-center justify-center min-h-screen text-lg bg-background text-foreground">
@@ -118,12 +129,10 @@ export default function HrApplicantsPage() {
     );
   }
 
-  // Render dashboard only if authenticated and authorized as HR
   if (sessionStatus === "authenticated" && session.user?.role === "hr") {
     return (
       <div className="min-h-screen flex flex-col bg-background text-foreground">
         <main className="flex-grow p-4 md:p-8 container mx-auto">
-          {/* Page Header */}
           <div className="mb-8">
             <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
               Applicant Management
@@ -133,10 +142,8 @@ export default function HrApplicantsPage() {
             </p>
           </div>
 
-          {/* Search and Filter Section */}
           <Card className="mb-8 bg-card shadow-md border border-border p-4">
             <CardContent className="flex flex-col md:flex-row gap-4 p-0">
-              {/* Search Input */}
               <div className="flex-1 flex items-center relative">
                 <Search className="absolute left-3 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -148,7 +155,6 @@ export default function HrApplicantsPage() {
                 />
               </div>
 
-              {/* Status Filter */}
               <div className="flex items-center gap-2">
                 <Filter className="h-4 w-4 text-muted-foreground" />
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -167,7 +173,6 @@ export default function HrApplicantsPage() {
             </CardContent>
           </Card>
 
-          {/* Loading, Error, or Applicants Table */}
           <Card className="bg-card shadow-md border border-border">
             <CardHeader>
               <CardTitle className="text-2xl font-semibold text-foreground">
@@ -176,7 +181,7 @@ export default function HrApplicantsPage() {
             </CardHeader>
             <CardContent>
               {error && (
-                <Alert variant="destructive">
+                <Alert variant="destructive" className="mb-4">
                   <AlertTitle>Error</AlertTitle>
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
@@ -207,37 +212,40 @@ export default function HrApplicantsPage() {
                     <TableBody>
                       {applicants.map((applicant) => (
                         <TableRow key={applicant.id}>
-                          <TableCell className="font-medium">{applicant.name}</TableCell>
-                          <TableCell>{applicant.email}</TableCell>
-                          <TableCell>{applicant.jobApplied}</TableCell>
+                          {/* FIX: Access nested properties */}
+                          <TableCell className="font-medium">{applicant.user.name || 'N/A'}</TableCell>
+                          <TableCell>{applicant.user.email || 'N/A'}</TableCell>
+                          <TableCell>{applicant.job.jobTitle || 'N/A'}</TableCell>
                           <TableCell>
                             <Badge
                               className={cn(
                                 "text-xs font-semibold",
-                                applicant.status === "New Application" && "bg-blue-100 text-blue-700 hover:bg-blue-200",
-                                applicant.status === "Screened" && "bg-purple-100 text-purple-700 hover:bg-purple-200",
-                                applicant.status === "Interview Scheduled" && "bg-indigo-100 text-indigo-700 hover:bg-indigo-200",
-                                applicant.status === "Offer Extended" && "bg-green-100 text-green-700 hover:bg-green-700",
-                                applicant.status === "Rejected" && "bg-red-100 text-red-700 hover:bg-red-200"
+                                applicant.status === "applied" && "bg-blue-100 text-blue-700 hover:bg-blue-200",
+                                applicant.status === "reviewed" && "bg-purple-100 text-purple-700 hover:bg-purple-200",
+                                applicant.status === "interviewed" && "bg-indigo-100 text-indigo-700 hover:bg-indigo-200",
+                                applicant.status === "offer" && "bg-green-100 text-green-700 hover:bg-green-700",
+                                applicant.status === "hired" && "bg-green-500 text-white hover:bg-green-600",
+                                applicant.status === "rejected" && "bg-red-100 text-red-700 hover:bg-red-200"
                               )}
                             >
-                              {applicant.status}
+                              {applicant.status.charAt(0).toUpperCase() + applicant.status.slice(1)}
                             </Badge>
                           </TableCell>
-                          <TableCell>{applicant.lastActivity}</TableCell>
+                          {/* FIX: Use appliedAt and handle null */}
+                          <TableCell>{applicant.appliedAt ? formatDate(new Date(applicant.appliedAt), 'PPP') : 'N/A'}</TableCell>
                           <TableCell className="text-right whitespace-nowrap">
-                            <Button variant="ghost" size="sm" onClick={() => router.push(applicant.profileLink)}>
+                            {/* FIX: Construct profileLink using applicant.id */}
+                            <Button variant="ghost" size="sm" onClick={() => router.push(`/dashboard/hr/applicants/${applicant.id}`)}>
                               <Eye className="h-4 w-4 mr-1" /> View Profile
                             </Button>
-                            <a href={applicant.resumeLink} target="_blank" rel="noopener noreferrer">
-                              <Button variant="ghost" size="sm" className="ml-2">
-                                <Download className="h-4 w-4 mr-1" /> Resume
-                              </Button>
-                            </a>
-                            {/* Example of a status update button (requires more logic) */}
-                            {/* <Button variant="ghost" size="sm" className="ml-2">
-                                Change Status
-                            </Button> */}
+                            {/* Resume link is now from applicant.resumeUrl */}
+                            {applicant.resumeUrl && (
+                              <a href={applicant.resumeUrl} target="_blank" rel="noopener noreferrer">
+                                <Button variant="ghost" size="sm" className="ml-2">
+                                  <Download className="h-4 w-4 mr-1" /> Resume
+                                </Button>
+                              </a>
+                            )}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -248,11 +256,9 @@ export default function HrApplicantsPage() {
             </CardContent>
           </Card>
         </main>
-
-        
       </div>
     );
   }
 
-  return null; // Should not reach here if redirects are handled
+  return null;
 }

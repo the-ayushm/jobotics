@@ -24,33 +24,29 @@ interface JobCardUserProps {
     createdAt: string | Date | null;
   };
   onApplySuccess: () => void;
-  hasApplied?: boolean; // NEW: Prop to indicate if user has applied
-  userApplicationStatus?: string | null; // NEW: Prop for current application status
+  hasApplied?: boolean;
+  userApplicationStatus?: string | null;
 }
 
-export function JobCardUser({ job, onApplySuccess, hasApplied, userApplicationStatus }: JobCardUserProps) {
-  // If the job is already applied for, the dialog won't be triggered.
-  // Instead, the button will just say "Applied".
-  const isApplied = hasApplied; // Use the prop directly
+export function JobCardUser({ job, onApplySuccess, hasApplied, userApplicationStatus }: JobCardUserProps) { // <--- ENSURE IT'S EXPORTED AS A NAMED EXPORT
+  const isApplied = hasApplied;
 
-  // Determine button text and disabled state
   let buttonText = "Apply Now";
   let buttonVariant: "default" | "secondary" | "destructive" | "outline" | "ghost" | "link" = "default";
   let buttonDisabled = false;
 
   if (isApplied) {
     buttonText = userApplicationStatus ? `Applied (${userApplicationStatus})` : "Applied";
-    buttonVariant = "secondary"; // A different variant to show it's already done
-    buttonDisabled = true; // Disable the button if already applied
+    buttonVariant = "secondary";
+    buttonDisabled = true;
   }
 
-  // Check if deadline has passed
   const deadlinePassed = job.deadline ? new Date() > new Date(job.deadline) : false;
-  if (deadlinePassed && !isApplied) { // If deadline passed and not already applied
+  if (deadlinePassed && !isApplied) {
     buttonText = "Deadline Passed";
     buttonVariant = "outline";
     buttonDisabled = true;
-  } else if (deadlinePassed && isApplied) { // If deadline passed and already applied
+  } else if (deadlinePassed && isApplied) {
     buttonText = `Applied (Deadline Passed)`;
     buttonVariant = "secondary";
     buttonDisabled = true;

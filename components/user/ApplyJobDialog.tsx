@@ -14,10 +14,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea"; // Assuming you have this from shadcn
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from 'sonner';
 import { useSession } from 'next-auth/react';
-import { Loader2 } from 'lucide-react'; // Loading icon
+import { Loader2 } from 'lucide-react';
 
 interface ApplyJobDialogProps {
   jobId: string;
@@ -30,14 +30,35 @@ export function ApplyJobDialog({ jobId, jobTitle, onApplySuccess }: ApplyJobDial
   const [fullName, setFullName] = useState(session?.user?.name || '');
   const [contactEmail, setContactEmail] = useState(session?.user?.email || '');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [coverLetter, setCoverLetter] = useState('');
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isDialogOpen, setIsDialogOpen] = useState(false); // State to control dialog open/close
-  const fileInputRef = useRef<HTMLInputElement>(null); // Ref for file input
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setResumeFile(e.target.files[0]);
+      const file = e.target.files[0];
+      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+      if (!allowedTypes.includes(file.type)) {
+        toast.error("Invalid File Type", {
+          description: "Please upload a PDF, DOC, or DOCX file.",
+        });
+        setResumeFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
+      }
+      const maxSize = 5 * 1024 * 1024; // 5 MB
+      if (file.size > maxSize) {
+        toast.error("File Too Large", {
+          description: "Resume file size should not exceed 5MB.",
+        });
+        setResumeFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
+      }
+
+      setResumeFile(file);
     } else {
       setResumeFile(null);
     }
@@ -66,14 +87,11 @@ export function ApplyJobDialog({ jobId, jobTitle, onApplySuccess }: ApplyJobDial
     let resumeUrl = '';
     try {
       // 1. Upload Resume to Vercel Blob
-      const formData = new FormData();
-      formData.append('file', resumeFile); // Append the file directly
-
       const uploadResponse = await fetch(`/api/upload-resume?filename=${encodeURIComponent(resumeFile.name)}`, {
         method: 'POST',
-        body: resumeFile, // Send the file directly as body
+        body: resumeFile,
         headers: {
-            'Content-Type': resumeFile.type, // Set content type of the file
+            'Content-Type': resumeFile.type,
         },
       });
 
@@ -85,7 +103,32 @@ export function ApplyJobDialog({ jobId, jobTitle, onApplySuccess }: ApplyJobDial
       resumeUrl = uploadResult.url;
       toast.success("Resume Uploaded", { description: "Your resume has been uploaded successfully." });
 
-      // 2. Submit Application Details
+      // NEW: 2. Trigger Skill Extraction from the uploaded resume
+      try {
+          const extractSkillsResponse = await fetch('/api/extract-skills', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+    resumeUrl: resumeUrl,
+    mimeType: resumeFile.type, // <-- add this
+  }),
+          });
+
+          if (!extractSkillsResponse.ok) {
+              const errorData = await extractSkillsResponse.json();
+              throw new Error(errorData.message || 'Failed to extract skills.');
+          }
+          const extractSkillsResult = await extractSkillsResponse.json();
+          console.log("Extracted skills:", extractSkillsResult.skills);
+          toast.info("Skills Extracted", { description: "Your skills have been extracted for matching." });
+      } catch (skillExtractError: any) {
+          console.error("Error during skill extraction:", skillExtractError);
+          toast.warning("Skill Extraction Failed", { description: skillExtractError.message || "Could not extract skills from resume. Matching might be limited." });
+          // Do not re-throw, allow application submission to proceed
+      }
+
+
+      // 3. Submit Application Details
       const applicationResponse = await fetch('/api/applications', {
         method: 'POST',
         headers: {
@@ -96,6 +139,7 @@ export function ApplyJobDialog({ jobId, jobTitle, onApplySuccess }: ApplyJobDial
           fullName,
           contactEmail,
           phoneNumber,
+          coverLetter,
           resumeUrl, // Include the uploaded resume URL
         }),
       });
@@ -114,9 +158,10 @@ export function ApplyJobDialog({ jobId, jobTitle, onApplySuccess }: ApplyJobDial
       setFullName(session?.user?.name || '');
       setContactEmail(session?.user?.email || '');
       setPhoneNumber('');
+      setCoverLetter('');
       setResumeFile(null);
       if (fileInputRef.current) {
-        fileInputRef.current.value = ''; // Clear file input
+        fileInputRef.current.value = '';
       }
 
     } catch (error: any) {
@@ -174,6 +219,16 @@ export function ApplyJobDialog({ jobId, jobTitle, onApplySuccess }: ApplyJobDial
               onChange={(e) => setPhoneNumber(e.target.value)}
               className="col-span-3"
               placeholder="Optional"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-start gap-4">
+            <Label htmlFor="coverLetter" className="text-right pt-2">Cover Letter</Label>
+            <Textarea
+              id="coverLetter"
+              value={coverLetter}
+              onChange={(e) => setCoverLetter(e.target.value)}
+              className="col-span-3 min-h-[100px]"
+              placeholder="Tell us why you're a good fit (Optional)"
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">

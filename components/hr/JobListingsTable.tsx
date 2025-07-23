@@ -20,6 +20,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 import { format as formatDate } from 'date-fns';
+import { toast } from "sonner"; // Use sonner for toasts
 
 interface Job {
   id: string;
@@ -27,7 +28,7 @@ interface Job {
   numOpenings: number;
   jobMode: string;
   status: string;
-  createdAt: string | null;
+  postedAt: string | null;
   deadline: string | null;
 }
 
@@ -52,6 +53,9 @@ export function JobListingsTable() {
       } catch (err: any) {
         console.error("Error fetching job listings:", err);
         setError(err.message || "Failed to load job listings. Please try again.");
+        toast.error("Failed to load jobs", {
+          description: err.message || "Please check your network connection.",
+        });
       } finally {
         setLoading(false);
       }
@@ -122,19 +126,22 @@ export function JobListingsTable() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {job.createdAt ? formatDate(new Date(job.createdAt), 'PPP') : 'N/A'}
+                        {job.postedAt ? formatDate(new Date(job.postedAt), 'PPP') : 'N/A'}
                       </TableCell>
                       <TableCell>
                         {job.deadline ? formatDate(new Date(job.deadline), 'PPP') : 'N/A'}
                       </TableCell>
                       <TableCell className="text-right whitespace-nowrap">
+                        {/* Link to HR Job Details Page */}
                         <Button variant="ghost" size="sm" onClick={() => router.push(`/dashboard/hr/jobs/${job.id}`)}>
                           <Eye className="h-4 w-4 mr-1" /> View Details
                         </Button>
-                        {/* UPDATED: Link to the new dynamic job edit page */}
+                        {/* Link to HR Job Edit Page */}
                         <Button variant="ghost" size="sm" onClick={() => router.push(`/dashboard/hr/jobs/edit/${job.id}`)} className="ml-2">
                           <Pencil className="h-4 w-4 mr-1" /> Edit
                         </Button>
+                        {/* Assuming applicants are linked to jobs, not directly from this table */}
+                        {/* No direct 'View Profile' from here, it's from the Applicants list */}
                       </TableCell>
                     </TableRow>
                   ))}
