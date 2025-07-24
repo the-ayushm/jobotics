@@ -111,7 +111,7 @@ export function UserApplicationsList() {
                   <TableRow key={app.id}>
                     <TableCell className="font-medium">{app.job.jobTitle}</TableCell>
                     <TableCell>{app.job.jobMode}</TableCell>
-                    <TableCell>${app.job.minSalary.toLocaleString()} - ${app.job.maxSalary.toLocaleString()}</TableCell>
+                    <TableCell>₹{app.job.minSalary.toLocaleString()} - ₹{app.job.maxSalary.toLocaleString()}</TableCell>
                     <TableCell>{formatDate(new Date(app.job.deadline), 'PPP')}</TableCell>
                     <TableCell>
                       <Badge

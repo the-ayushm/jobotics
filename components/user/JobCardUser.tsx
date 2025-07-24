@@ -55,7 +55,7 @@ export function JobCardUser({ job, onApplySuccess, hasApplied, userApplicationSt
   return (
     <Card className="flex flex-col h-full bg-card text-card-foreground shadow-lg hover:shadow-xl transition-all duration-300 rounded-lg overflow-hidden">
       <CardHeader className="p-6 pb-4">
-        <CardTitle className="text-2xl font-extrabold text-primary-foreground leading-tight">{job.jobTitle}</CardTitle>
+        <CardTitle className="text-2xl font-extrabold text-primary-foreground leading-tight">{job.jobTitle}</CardTitle> 
         <CardDescription className="text-sm text-gray-500 dark:text-gray-400 mt-2">
           Posted: {job.createdAt ? formatDate(new Date(job.createdAt), 'MMM dd,yyyy') : 'N/A'} | Deadline: {job.deadline ? formatDate(new Date(job.deadline), 'MMM dd,yyyy') : 'N/A'}
         </CardDescription>
@@ -67,7 +67,7 @@ export function JobCardUser({ job, onApplySuccess, hasApplied, userApplicationSt
             {job.numOpenings} Openings
           </Badge>
           <Badge variant="outline" className="px-3 py-1 text-sm font-medium border-purple-500 text-purple-700 dark:border-purple-400 dark:text-purple-300 rounded-full">
-            ${job.minSalary.toLocaleString()} - ${job.maxSalary.toLocaleString()}
+            ₹{job.minSalary.toLocaleString()} - ₹{job.maxSalary.toLocaleString()}
           </Badge>
         </div>
       </CardHeader>

@@ -159,7 +159,7 @@ export default function UserJobDetailsPage() {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Salary Range</p>
-                    <p className="text-lg">${job.minSalary.toLocaleString()} - ${job.maxSalary.toLocaleString()}</p>
+                    <p className="text-lg">₹{job.minSalary.toLocaleString()} - ₹{job.maxSalary.toLocaleString()}</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Application Deadline</p>
