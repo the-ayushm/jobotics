@@ -15,6 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -330,6 +331,9 @@ export function DashboardLayout({ children, activeSection, onSectionChange }: Da
                 Welcome back to your dashboard
               </p>
             </motion.div>
+
+            {/* Theme Toggle */}
+            <ThemeToggle />
 
             {/* User Profile Dropdown */}
             <DropdownMenu>

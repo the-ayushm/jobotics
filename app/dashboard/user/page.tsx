@@ -2,9 +2,9 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useEffect, useState, useCallback } from "react";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout"; // The main dashboard layout
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState, useCallback, Suspense } from "react";
+import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 
 // Import all the content components that will be rendered conditionally
 import { UserDashboardContent } from "@/components/user/UserDashboardContent";
@@ -13,17 +13,20 @@ import { UserApplicationsList } from "@/components/user/UserApplicationsList";
 import { UserProfile } from "@/components/user/UserProfile";
 import { UserSettings } from "@/components/user/UserSettings";
 
-// Define interfaces for mock data (these are now in UserDashboardContent.tsx)
-// interface DashboardStats { /* ... */ }
-// interface RecentApplication { /* ... */ }
-// interface RecentJob { /* ... */ }
-// interface QuickStats { /* ... */ }
-
-
-export default function UserDashboardPage() {
+function UserDashboardInner() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [activeSection, setActiveSection] = useState("dashboard"); // Default active section
+  const searchParams = useSearchParams();
+  const sectionParam = searchParams.get("section");
+
+  const [activeSection, setActiveSection] = useState(sectionParam || "dashboard");
+
+  // Sync activeSection with URL query parameter
+  useEffect(() => {
+    if (sectionParam) {
+      setActiveSection(sectionParam);
+    }
+  }, [sectionParam]);
 
   // Authentication and Authorization check for the page
   useEffect(() => {
@@ -35,11 +38,12 @@ export default function UserDashboardPage() {
 
   const handleSectionChange = (section: string) => {
     setActiveSection(section);
+    router.push(`/dashboard/user?section=${section}`);
   };
 
   if (status === "loading") {
     return (
-      <div className="flex items-center justify-center min-h-screen text-lg bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
+      <div className="flex items-center justify-center min-h-screen text-lg bg-background text-foreground">
         Loading user dashboard...
       </div>
     );
@@ -47,13 +51,11 @@ export default function UserDashboardPage() {
 
   if (status === "authenticated" && session.user?.role === "user") {
     return (
-      // DashboardLayout now provides the full layout including header, sidebar, and footer
-      // The content for each section is passed as children.
       <DashboardLayout activeSection={activeSection} onSectionChange={handleSectionChange}>
         {/* Conditionally render content based on activeSection */}
         {activeSection === "dashboard" && (
           <div className="space-y-8">
-            <UserDashboardContent /> {/* This component contains all the overview data */}
+            <UserDashboardContent onSectionChange={handleSectionChange} />
           </div>
         )}
         {activeSection === "available-jobs" && (
@@ -85,4 +87,16 @@ export default function UserDashboardPage() {
   }
 
   return null;
+}
+
+export default function UserDashboardPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen text-lg bg-background text-foreground">
+        Loading user dashboard...
+      </div>
+    }>
+      <UserDashboardInner />
+    </Suspense>
+  );
 }

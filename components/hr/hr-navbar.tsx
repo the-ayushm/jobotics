@@ -17,7 +17,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-// import { ModeToggle } from "@/components/mode-toggle"; // Optional theme toggle
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export function HrNavbar() {
   const { data: session } = useSession();
@@ -69,8 +69,7 @@ export function HrNavbar() {
 
         {/* User Avatar and Dropdown Menu */}
         <div className="flex items-center space-x-3">
-          {/* Optional: Theme Toggle */}
-          {/* <ModeToggle /> */}
+          <ThemeToggle />
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

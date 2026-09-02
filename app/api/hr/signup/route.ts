@@ -1,10 +1,8 @@
 // app/api/hr/signup/route.ts
-import { PrismaClient } from "@prisma/client";
+import { client } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { hash } from "bcryptjs";
-import { z } from "zod"; // Ensure you have zod installed: npm install zod
-
-const client = new PrismaClient();
+import { z } from "zod";
 
 // Define a Zod schema for input validation for HR signup
 const hrSignupSchema = z.object({

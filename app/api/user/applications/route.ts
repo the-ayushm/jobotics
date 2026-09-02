@@ -23,7 +23,7 @@ export async function GET(req: Request) {
             where: {
                 userId: userId,
             },
-            // Include details of the job they applied for
+            // Include details of the job and any scheduled interviews
             include: {
                 job: {
                     select: {
@@ -33,6 +33,26 @@ export async function GET(req: Request) {
                         minSalary: true,
                         maxSalary: true,
                         deadline: true,
+                        postedBy: {
+                            select: {
+                                name: true,
+                                company: true,
+                            },
+                        },
+                    },
+                },
+                interviews: {
+                    select: {
+                        id: true,
+                        interviewDate: true,
+                        interviewTime: true,
+                        interviewType: true,
+                        status: true,
+                        meetLink: true,
+                        notes: true,
+                    },
+                    orderBy: {
+                        interviewDate: 'asc',
                     },
                 },
             },

@@ -1,4 +1,5 @@
 // app/api/user/profile/route.ts
+export const dynamic = "force-dynamic";
 import { NextResponse, NextRequest } from 'next/server';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth"; // Adjust path as needed
@@ -28,6 +29,8 @@ export async function GET(req: Request) {
                 role: true,
                 image: true,
                 createdAt: true,
+                skills: true,
+                company: true,
             },
         });
 
@@ -62,7 +65,7 @@ export async function PATCH(req: NextRequest) {
 
         const userId = session.user.id;
         const body = await req.json();
-        const { name, email, phone, currentPassword, newPassword } = body; // Include password fields for potential change
+        const { name, email, phone, currentPassword, newPassword, company } = body;
 
         // Fetch the existing user to verify current password if newPassword is provided
         const existingUser = await client.user.findUnique({
@@ -93,9 +96,11 @@ export async function PATCH(req: NextRequest) {
             email?: string;
             phone?: string | null;
             password?: string;
+            company?: string | null;
         } = {};
 
         if (name !== undefined) updateData.name = name;
+        if (company !== undefined) updateData.company = company;
         if (email !== undefined && email !== existingUser.email) {
             // Check if new email already exists for another user
             const emailExists = await client.user.findUnique({ where: { email } });
@@ -115,7 +120,7 @@ export async function PATCH(req: NextRequest) {
         const updatedUser = await client.user.update({
             where: { id: userId },
             data: updateData,
-            select: { id: true, name: true, email: true, phone: true, role: true, image: true, createdAt: true }
+            select: { id: true, name: true, email: true, phone: true, role: true, image: true, createdAt: true, skills: true, company: true }
         });
 
         console.log(`User profile updated successfully for ID: ${userId}.`);

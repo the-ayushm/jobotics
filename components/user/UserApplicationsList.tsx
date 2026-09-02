@@ -4,7 +4,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal, Eye, Download } from 'lucide-react';
+import { Terminal, Eye, Download, CalendarCheck } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -32,6 +32,13 @@ interface Application {
     maxSalary: number;
     deadline: string;
   };
+  interviews?: Array<{
+    id: string;
+    interviewDate: string;
+    interviewTime: string;
+    interviewType: string;
+    meetLink: string | null;
+  }>;
   resumeUrl: string | null;
 }
 
@@ -130,7 +137,13 @@ export function UserApplicationsList() {
                     </TableCell>
                     <TableCell>{formatDate(new Date(app.appliedAt), 'PPP')}</TableCell>
                     <TableCell className="text-right whitespace-nowrap">
-                      {/* UPDATED: Link to the new dynamic user job details page */}
+                      {app.interviews && app.interviews.length > 0 && app.interviews[0].meetLink && (
+                        <a href={app.interviews[0].meetLink} target="_blank" rel="noopener noreferrer">
+                          <Button variant="outline" size="sm" className="mr-2 text-primary border-primary">
+                            <CalendarCheck className="h-4 w-4 mr-1" /> Join Meet
+                          </Button>
+                        </a>
+                      )}
                       <Button variant="ghost" size="sm" onClick={() => router.push(`/dashboard/user/jobs/${app.job.id}`)}>
                         <Eye className="h-4 w-4 mr-1" /> View Job
                       </Button>

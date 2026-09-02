@@ -55,11 +55,12 @@ export function SignUpForm({
       const signInResult = await signIn("credentials", {
         email,
         password,
+        role: "hr",
         redirect: false
       })
       if (signInResult?.error) {
         console.log("Sign in failed!", signInResult.error)
-        alert("Sign in failed!")
+        router.push("/auth/hr/signin")
       } else {
         console.log("Sign in successful!", signInResult)
         router.push("/dashboard/hr")

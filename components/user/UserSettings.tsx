@@ -9,8 +9,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input"; // For password change example
 import { toast } from "sonner"; // For notifications
 import { Loader2 } from 'lucide-react'; // For loading spinner
+import { useTheme } from "next-themes";
 
 export function UserSettings() {
+  const { theme, setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const [emailNotifications, setEmailNotifications] = useState(true); // Example setting
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -38,9 +46,16 @@ export function UserSettings() {
     }
 
     try {
-      // Here you would make an API call to change the password
-      // Example: await fetch('/api/user/change-password', { method: 'POST', body: JSON.stringify({ currentPassword, newPassword }) });
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
+      const response = await fetch('/api/user/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update password.');
+      }
 
       toast.success("Password Updated", { description: "Your password has been changed successfully." });
       setCurrentPassword('');
@@ -71,8 +86,17 @@ export function UserSettings() {
             />
           </div>
           <div className="flex items-center justify-between">
-            <Label htmlFor="darkMode">Dark Mode</Label>
-            <Switch id="darkMode" checked disabled /> {/* Theme is managed globally by ThemeProvider */}
+            <div>
+              <Label htmlFor="darkMode">Dark Mode</Label>
+              <p className="text-xs text-muted-foreground">Toggle between light and dark interface</p>
+            </div>
+            {mounted && (
+              <Switch
+                id="darkMode"
+                checked={resolvedTheme === "dark"}
+                onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
+              />
+            )}
           </div>
         </div>
 

@@ -55,6 +55,7 @@ export function SignUpForm({
                 redirect: false, // Handle redirect manually
                 email,
                 password,
+                role: "user",
             });
 
             if (signInResult?.error) {
@@ -186,7 +187,7 @@ export function SignUpForm({
                             </div>
                             <div className="text-center text-sm">
                                 Already have an account?{" "}
-                                <Link href="http://localhost:3000/auth/user/signin" className="underline underline-offset-4">
+                                <Link href="/auth/user/signin" className="underline underline-offset-4">
                                     Sign In
                                 </Link>
                             </div>

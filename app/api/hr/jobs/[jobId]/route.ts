@@ -1,4 +1,5 @@
 // app/api/hr/jobs/[jobId]/route.ts
+export const dynamic = "force-dynamic";
 import { NextResponse, NextRequest } from 'next/server';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth"; // Corrected import path

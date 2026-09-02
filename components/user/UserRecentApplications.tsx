@@ -23,15 +23,24 @@ interface RecentApplication {
 interface UserRecentApplicationsProps {
   recentApplications: RecentApplication[];
   loading: boolean;
-  getStatusColor: (status: string) => string; // Pass the status color helper
+  getStatusColor: (status: string) => string;
+  onSectionChange?: (section: string) => void;
 }
 
-export function UserRecentApplications({ recentApplications, loading, getStatusColor }: UserRecentApplicationsProps) {
+export function UserRecentApplications({ recentApplications, loading, getStatusColor, onSectionChange }: UserRecentApplicationsProps) {
   const router = useRouter();
+
+  const handleViewAll = () => {
+    if (onSectionChange) {
+      onSectionChange('my-applications');
+    } else {
+      router.push('/dashboard/user?section=my-applications');
+    }
+  };
 
   if (loading) {
     return (
-      <Card className="bg-card text-card-foreground shadow-md">
+      <Card className="bg-card text-card-foreground shadow-md border border-border">
         <CardHeader>
           <Skeleton className="h-6 w-1/2" />
         </CardHeader>
@@ -48,10 +57,10 @@ export function UserRecentApplications({ recentApplications, loading, getStatusC
   }
 
   return (
-    <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+    <Card className="bg-card text-card-foreground border border-border shadow-md">
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-xl font-semibold text-gray-900">Recent Applications</CardTitle>
-        <Button variant="ghost" size="sm" onClick={() => router.push('/dashboard/user?section=my-applications')}>
+        <CardTitle className="text-xl font-semibold text-foreground">Recent Applications</CardTitle>
+        <Button variant="ghost" size="sm" onClick={handleViewAll} className="text-primary hover:text-primary cursor-pointer">
           View All <ArrowRight className="w-4 h-4 ml-1" />
         </Button>
       </CardHeader>

@@ -51,8 +51,11 @@ interface QuickStats {
   jobMatches: number;
 }
 
+interface UserDashboardContentProps {
+  onSectionChange?: (section: string) => void;
+}
 
-export function UserDashboardContent() {
+export function UserDashboardContent({ onSectionChange }: UserDashboardContentProps = {}) {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [recentApplications, setRecentApplications] = useState<RecentApplication[]>([]);
   const [recentJobs, setRecentJobs] = useState<RecentJob[]>([]);
@@ -78,27 +81,19 @@ export function UserDashboardContent() {
     setLoading(true);
     setError(null);
     try {
-      // Simulate API calls - replace with actual endpoints
-      const mockStats: DashboardStats = { totalApplications: 12, activeApplications: 8, interviewsScheduled: 3, offersReceived: 1 };
-      const mockApplications: RecentApplication[] = [
-        { id: '1', jobTitle: 'Senior Frontend Developer', companyName: 'TechCorp Inc.', status: 'reviewed', appliedAt: '2024-01-15', jobMode: 'Remote', salary: '$80,000 - $120,000' },
-        { id: '2', jobTitle: 'UX Designer', companyName: 'Design Studio', status: 'interviewed', appliedAt: '2024-01-14', jobMode: 'Hybrid', salary: '$70,000 - $100,000' },
-        { id: '3', jobTitle: 'Full Stack Developer', companyName: 'StartupXYZ', status: 'applied', appliedAt: '2024-01-13', jobMode: 'On-site', salary: '$90,000 - $130,000' }
-      ];
-      const mockJobs: RecentJob[] = [
-        { id: '1', jobTitle: 'React Developer', companyName: 'InnovateTech', location: 'San Francisco, CA', salary: '$85,000 - $125,000', jobMode: 'Remote', deadline: '2024-02-01', postedAt: '2024-01-16' },
-        { id: '2', jobTitle: 'Product Manager', companyName: 'GrowthCorp', location: 'New York, NY', salary: '$100,000 - $150,000', jobMode: 'Hybrid', deadline: '2024-01-25', postedAt: '2024-01-15' }
-      ];
-      const mockUpcomingInterview = { jobTitle: "Senior Frontend Developer", dateTime: "Tomorrow at 2:00 PM", link: "#" };
-      const mockQuickStats = { applicationsSent: 3, profileViews: 12, jobMatches: 8 };
-
-      setStats(mockStats);
-      setRecentApplications(mockApplications);
-      setRecentJobs(mockJobs);
-      setUpcomingInterview(mockUpcomingInterview);
-      setQuickStats(mockQuickStats);
-
+      const res = await fetch('/api/user/stats');
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Failed to fetch dashboard data.');
+      }
+      const data = await res.json();
+      setStats(data.stats);
+      setRecentApplications(data.recentApplications || []);
+      setRecentJobs(data.recentJobs || []);
+      setUpcomingInterview(data.upcomingInterview);
+      setQuickStats(data.quickStats);
     } catch (err: any) {
+      console.error("Error loading candidate dashboard data:", err);
       setError(err.message || 'Failed to load dashboard data');
     } finally {
       setLoading(false);
@@ -147,13 +142,13 @@ export function UserDashboardContent() {
       <UserStatsCards stats={stats} loading={loading} />
 
       {/* Quick Actions */}
-      <UserQuickActions loading={loading} />
+      <UserQuickActions loading={loading} onSectionChange={onSectionChange} />
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Applications */}
         <div className="lg:col-span-2">
-          <UserRecentApplications recentApplications={recentApplications} loading={loading} getStatusColor={getStatusColor} />
+          <UserRecentApplications recentApplications={recentApplications} loading={loading} getStatusColor={getStatusColor} onSectionChange={onSectionChange} />
         </div>
 
         {/* Sidebar */}

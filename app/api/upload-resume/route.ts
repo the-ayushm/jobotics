@@ -1,4 +1,5 @@
 // app/api/upload-resume/route.ts
+export const dynamic = "force-dynamic";
 import { put } from '@vercel/blob';
 import { NextResponse } from 'next/server';
 import { getServerSession } from "next-auth";

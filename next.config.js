@@ -10,7 +10,7 @@ const nextConfig = {
         'mammoth': 'commonjs mammoth',
         // If other modules cause similar ENOENT errors, add them here
         // For example: 'fs': 'commonjs fs', // More aggressive, but might break other things
-      });
+      }); 
     }
     return config;
   },

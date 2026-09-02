@@ -9,9 +9,10 @@ import { Button } from "@/components/ui/button";
 import { useSession } from "next-auth/react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal, Edit, Save, XCircle, Loader2 } from 'lucide-react'; // Added Save, XCircle, Loader2 icons
+import { Terminal, Edit, Save, XCircle, Loader2, Sparkles } from 'lucide-react'; // Added Save, XCircle, Loader2 icons
 import { format as formatDate } from 'date-fns';
 import { toast } from 'sonner'; // For toasts
+import { Badge } from "@/components/ui/badge";
 
 // Define the UserProfileData type (should match API response)
 interface UserProfileData {
@@ -22,6 +23,7 @@ interface UserProfileData {
   role: string;
   image: string | null;
   createdAt: string;
+  skills?: string[];
 }
 
 export function UserProfile() {
@@ -226,6 +228,21 @@ export function UserProfile() {
               <Label htmlFor="memberSince">Member Since</Label>
               <Input id="memberSince" type="text" value={profile.createdAt ? formatDate(new Date(profile.createdAt), 'PPP') : 'N/A'} readOnly className="mt-1" />
             </div>
+
+            {profile.skills && profile.skills.length > 0 && (
+              <div className="pt-2">
+                <Label className="flex items-center gap-2 mb-2 font-medium text-foreground">
+                  <Sparkles className="h-4 w-4 text-primary" /> Extracted Skills (from Resumes)
+                </Label>
+                <div className="flex flex-wrap gap-2 p-3 bg-muted/30 rounded-lg border border-border">
+                  {profile.skills.map((skill, index) => (
+                    <Badge key={index} variant="secondary" className="px-3 py-1 bg-primary/10 text-primary border border-primary/20 font-medium rounded-full">
+                      {skill}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {isEditing && (
                 <div className="border-t border-border pt-4 mt-4 space-y-4">
